@@ -1,4 +1,7 @@
-
+if [ -z "$1" ]; then
+    echo "please provide arguments: ./client-to-node.sh <password>"
+    exit
+fi
 echo -------------------------------------------------------------------------
 echo ---- This script will set up client security for you on this node    ----
 echo ---- hit return to execute each step                                 ----
@@ -18,7 +21,7 @@ echo -------------------------------------------------------------------------
 read
 
 #keystore
-sudo keytool -genkey -alias keystore -keyalg RSA -keysize 1024 -dname "CN=UNKNOWN, OU=UNKNOWN, O=UNKNOWN, C=UNKNOWN"  -keystore .keystore -storepass cassandra -keypass cassandra
+sudo keytool -genkey -alias keystore -keyalg RSA -keysize 1024 -dname "CN=UNKNOWN, OU=UNKNOWN, O=UNKNOWN, C=UNKNOWN"  -keystore .keystore -storepass $1 -keypass $1
 
 
 echo -------------------------------------------------------------------------
@@ -27,7 +30,7 @@ echo -------------------------------------------------------------------------
 read
 
 #certificate
-sudo keytool -export -alias keystore -file dse_node0.cer -keystore .keystore -storepass cassandra -keypass cassandra
+sudo keytool -export -alias keystore -file dse_node0.cer -keystore .keystore -storepass $1 -keypass $1
 
 echo -------------------------------------------------------------------------
 echo ------------------------set up truststore--------------------------------
@@ -35,15 +38,15 @@ echo -------------------------------------------------------------------------
 read
 
 #truststore
-sudo keytool -import -v -noprompt -trustcacerts -alias cassandra-secure1 -file dse_node0.cer -keystore .truststore -storepass cassandra
+sudo keytool -import -v -noprompt -trustcacerts -alias cassandra-secure1 -file dse_node0.cer -keystore .truststore -storepass $1
 
 echo -------------------------------------------------------------------------
 echo ------------------------set up user key and pem--------------------------
 echo -------------------------------------------------------------------------
 read
-sudo keytool -importkeystore -srckeystore .keystore -destkeystore user.p12 -deststoretype PKCS12  --srcstorepass cassandra --deststorepass cassandra
+sudo keytool -importkeystore -srckeystore .keystore -destkeystore user.p12 -deststoretype PKCS12  --srcstorepass $1 --deststorepass $1
 
-sudo openssl pkcs12 -in user.p12 -out user.pem -nodes -password pass:cassandra
+sudo openssl pkcs12 -in user.p12 -out user.pem -nodes -password pass:$1
 
 echo -------------------------------------------------------------------------
 echo ------------ Create/overwrite your cqlshrc file -------------------------
@@ -54,10 +57,8 @@ sudo echo "
 [authentication]
 username =
 password =
-
 [connection]
 factory = cqlshlib.ssl.ssl_transport_factory
-
 [ssl]
 certfile = /etc/dse/certs/user.pem
 validate = true ## Optional, true by default." | sudo tee ~/.cassandra/cqlshrc
@@ -80,13 +81,13 @@ echo "     sudo vim /etc/dse/cassandra/cassandra.yaml"
 echo "     "
 echo "     client_encryption_options:"
 echo "       keystore: /etc/dse/certs/.keystore"
-echo "       truststore_password: cassandra"
+echo "       truststore_password: $1"
 echo "       cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_RSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA]"
 echo "       enabled: true"
 echo "       protocol: TLS"
 echo "       require_client_auth: false"
 echo "       truststore: /etc/dse/certs/.truststore"
-echo "       keystore_password: cassandra"
+echo "       keystore_password: $1"
 
 
 echo -------------------------------------------------------------------------
