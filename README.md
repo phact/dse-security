@@ -1,5 +1,8 @@
 # dse-security
 
+Make the file executable:
+`sudo chmod +x client-to-node.sh`
+
 Run `client-to-node.sh` to set up client to node encryption. This will guide you through setting up local keystore and truststores, editing config, and testing cqlsh --ssl.
 
 ###TODO:
