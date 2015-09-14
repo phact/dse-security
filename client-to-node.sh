@@ -48,6 +48,10 @@ sudo keytool -importkeystore -srckeystore .keystore -destkeystore user.p12 -dest
 
 sudo openssl pkcs12 -in user.p12 -out user.pem -nodes -password pass:"$1"
 
+
+echo ----------Here are your keystore, truststores, and keys------------------
+ls -lah
+
 echo -------------------------------------------------------------------------
 echo ------------ Create/overwrite your cqlshrc file -------------------------
 echo -------------------------------------------------------------------------
