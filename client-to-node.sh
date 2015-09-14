@@ -10,43 +10,43 @@ echo
 echo -------------------------------------------------------------------------
 echo -----------------------------create files--------------------------------
 echo -------------------------------------------------------------------------
-read
+read -r
 sudo mkdir /etc/dse/certs
 
-cd /etc/dse/certs
+cd /etc/dse/certs || exit
 
 echo -------------------------------------------------------------------------
 echo -----------------------set up up keystore--------------------------------
 echo -------------------------------------------------------------------------
-read
+read -r
 
 #keystore
-sudo keytool -genkey -alias keystore -keyalg RSA -keysize 1024 -dname "CN=UNKNOWN, OU=UNKNOWN, O=UNKNOWN, C=UNKNOWN"  -keystore .keystore -storepass $1 -keypass $1
+sudo keytool -genkey -alias keystore -keyalg RSA -keysize 1024 -dname "CN=UNKNOWN, OU=UNKNOWN, O=UNKNOWN, C=UNKNOWN"  -keystore .keystore -storepass "$1" -keypass "$1"
 
 
 echo -------------------------------------------------------------------------
 echo -------------------------set up certs------------------------------------
 echo -------------------------------------------------------------------------
-read
+read -r
 
 #certificate
-sudo keytool -export -alias keystore -file dse_node0.cer -keystore .keystore -storepass $1 -keypass $1
+sudo keytool -export -alias keystore -file dse_node0.cer -keystore .keystore -storepass "$1" -keypass "$1"
 
 echo -------------------------------------------------------------------------
 echo ------------------------set up truststore--------------------------------
 echo -------------------------------------------------------------------------
-read
+read -r
 
 #truststore
-sudo keytool -import -v -noprompt -trustcacerts -alias cassandra-secure1 -file dse_node0.cer -keystore .truststore -storepass $1
+sudo keytool -import -v -noprompt -trustcacerts -alias cassandra-secure1 -file dse_node0.cer -keystore .truststore -storepass "$1"
 
 echo -------------------------------------------------------------------------
 echo ------------------------set up user key and pem--------------------------
 echo -------------------------------------------------------------------------
-read
-sudo keytool -importkeystore -srckeystore .keystore -destkeystore user.p12 -deststoretype PKCS12  --srcstorepass $1 --deststorepass $1
+read -r
+sudo keytool -importkeystore -srckeystore .keystore -destkeystore user.p12 -deststoretype PKCS12  --srcstorepass "$1" --deststorepass "$1"
 
-sudo openssl pkcs12 -in user.p12 -out user.pem -nodes -password pass:$1
+sudo openssl pkcs12 -in user.p12 -out user.pem -nodes -password pass:"$1"
 
 echo -------------------------------------------------------------------------
 echo ------------ Create/overwrite your cqlshrc file -------------------------
@@ -66,7 +66,7 @@ validate = true ## Optional, true by default." | sudo tee ~/.cassandra/cqlshrc
 
 echo -------------------------------------------------------------------------
 
-read
+read -r
 
 echo -------------------------------------------------------------------------
 echo ------------MANUAL STEP - For client to node configure:------------------
@@ -92,14 +92,14 @@ echo "       keystore_password: $1"
 
 echo -------------------------------------------------------------------------
 
-read
+read -r
 
 echo -------------------------------------------------------------------------
 echo -------------------------- Restart DSE  ---------------------------------
 echo -------------------------------------------------------------------------
 echo ------wait until Listening for thift before hitting enter  --------------
 sudo service dse restart
-tail -f /var/log/cassandra/system.log | grep "Listening for thrift clients" & read
+tail -f /var/log/cassandra/system.log | grep "Listening for thrift clients" & read -r
 echo -------------------------------------------------------------------------
 echo -------------------------- nodetool status  -----------------------------
 echo -------------------------------------------------------------------------
@@ -111,5 +111,5 @@ echo ------------Testing CQLSH -- should output number of peers   ------------
 echo -------------------------------------------------------------------------
 
 cqlsh --ssl -e "select count(1) from system.peers"
-read
+read -r
 echo ALL DONE!
